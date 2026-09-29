@@ -84,6 +84,7 @@ fun EditorScreen(
     var showStickerSheet by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showFontLibrary by remember { mutableStateOf(false) }
+    var showExportPreview by remember { mutableStateOf(false) }
     var exportMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -121,9 +122,14 @@ fun EditorScreen(
             if (uri == null) return@rememberLauncherForActivityResult
 
             val importedText = readImportedText(context, uri)
-            viewModel.addText(importedText)
-            viewModel.applyTextPreset(TextPreset.POSTER)
-            exportMessage = "已导入可编辑文字：${importedText.take(18)}${if (importedText.length > 18) "..." else ""}"
+            val sourceName = uri.lastPathSegment?.substringAfterLast('/')?.substringBeforeLast('.') ?: "文本层"
+            val layer = viewModel.layers.filterIsInstance<TextLayer>().firstOrNull { it.text == importedText }
+            if (layer == null) {
+                viewModel.addText(importedText)
+                viewModel.updateSelectedText { it.copy(text = importedText, fontName = sourceName.ifBlank { "default" }) }
+                viewModel.applyTextPreset(TextPreset.POSTER)
+            }
+            exportMessage = "已从 ${sourceName} 提取文本层：${importedText.take(18)}${if (importedText.length > 18) "..." else ""}"
         }
     )
 
@@ -224,6 +230,10 @@ fun EditorScreen(
 
                         Button(onClick = { viewModel.saveProject("工程 1") }) {
                             Text("保存")
+                        }
+
+                        Button(onClick = { showExportPreview = true }) {
+                            Text("预览")
                         }
 
                         Button(onClick = {
@@ -373,6 +383,24 @@ fun EditorScreen(
                 showStickerSheet = false
             },
             onDismiss = { showStickerSheet = false }
+        )
+    }
+
+    if (showExportPreview) {
+        ExportPreviewSheet(
+            projectSummary = viewModel.exportProjectSummaryJson(),
+            layerCount = viewModel.layers.size,
+            onExportImage = {
+                val path = viewModel.exportCurrentProjectImage()
+                exportMessage = if (path != null) "已导出 PNG: $path" else "导出失败"
+                showExportPreview = false
+            },
+            onExportJson = {
+                val json = viewModel.exportProjectSummaryJson()
+                exportMessage = "已生成项目结构 JSON：${json.take(28)}..."
+                showExportPreview = false
+            },
+            onDismiss = { showExportPreview = false }
         )
     }
 

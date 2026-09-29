@@ -326,6 +326,30 @@ class EditorViewModel @Inject constructor(
         }
     }
 
+    fun exportProjectSummaryJson(): String {
+        val textLayers = layers.filterIsInstance<TextLayer>()
+        val payload = buildString {
+            append("{\n")
+            append("  \"background\": \"${background.type}\",\n")
+            append("  \"layerCount\": ${layers.size},\n")
+            append("  \"textLayerCount\": ${textLayers.size},\n")
+            append("  \"layers\": [\n")
+            textLayers.forEachIndexed { index, layer ->
+                append("    {\n")
+                append("      \"id\": \"${layer.id}\",\n")
+                append("      \"text\": \"${layer.text.replace("\\", "\\\\").replace("\"", "\\\"")}\",\n")
+                append("      \"fontSize\": ${layer.fontSize},\n")
+                append("      \"color\": ${layer.textColor},\n")
+                append("      \"effect\": \"${layer.effect}\",\n")
+                append("      \"is3D\": ${layer.is3D}\n")
+                append("    }${if (index < textLayers.lastIndex) "," else ""}\n")
+            }
+            append("  ]\n")
+            append("}\n")
+        }
+        return payload
+    }
+
     fun exportCurrentProjectImage(fileName: String = "fontcraft_export.png"): String? {
         val bitmap = Bitmap.createBitmap(1080, 1920, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
