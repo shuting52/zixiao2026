@@ -70,13 +70,16 @@ fun EditorCanvas(
             ) {
                 when (layer) {
                     is TextLayer -> {
-                        Text(
-                            text = layer.text,
-                            color = Color(layer.textColor),
-                            fontSize = layer.fontSize.sp,
-                            modifier = Modifier.graphicsLayer(
-                                shadowElevation = if (layer.shadowRadius > 0f) 10f else 0f
-                            )
+                        Box(
+                            modifier = Modifier
+                                .graphicsLayer(alpha = 0f)
+                                .pointerInput(layer.id) {
+                                    detectTransformGestures { _, pan, zoom, rotationDelta ->
+                                        onSelect(layer.id)
+                                        onMove(layer.id, layer.x + pan.x, layer.y + pan.y)
+                                        onScaleRotate(layer.id, zoom, rotationDelta)
+                                    }
+                                }
                         )
                     }
                     is ImageLayer -> {
@@ -118,18 +121,24 @@ private fun drawLayerToCanvas(canvas: android.graphics.Canvas, layer: Layer) {
     }
 }
 
-private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
-    val customTypeface = when {
-        layer.fontPath != null && File(layer.fontPath).exists() -> Typeface.createFromFile(layer.fontPath)
-        layer.fontName == "bold" -> Typeface.DEFAULT_BOLD
-        layer.fontName == "serif" -> Typeface.SERIF
-        layer.fontName == "mono" -> Typeface.MONOSPACE
-        else -> Typeface.DEFAULT
-    }
+private data class TextRenderPass(
+    val paint: Paint,
+    val dx: Float = 0f,
+    val dy: Float = 0f
+)
 
+fun buildTextRenderPasses(layer: TextLayer): List<TextRenderPass> {
+    val passes = mutableListOf<TextRenderPass>()
     val basePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        isDither = true
         textSize = layer.fontSize
-        typeface = customTypeface
+        typeface = when {
+            layer.fontPath != null && File(layer.fontPath).exists() -> Typeface.createFromFile(layer.fontPath)
+            layer.fontName == "bold" -> Typeface.DEFAULT_BOLD
+            layer.fontName == "serif" -> Typeface.SERIF
+            layer.fontName == "mono" -> Typeface.MONOSPACE
+            else -> Typeface.DEFAULT
+        }
         alpha = (layer.alpha * 255).toInt().coerceIn(0, 255)
         textAlign = when (layer.textAlignment) {
             TextAlignment.LEFT -> Paint.Align.LEFT
@@ -138,17 +147,23 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         }
     }
 
-    val animationScale = when (layer.animation) {
-        TextAnimation.NONE -> 1f
-        TextAnimation.PULSE -> 1.05f
-        TextAnimation.SWING -> 1f
-        TextAnimation.FADE -> 0.96f
+    if (layer.is3D && layer.extrudeDepth > 0) {
+        for (i in 1..layer.extrudeDepth) {
+            passes += TextRenderPass(
+                paint = Paint(basePaint).apply {
+                    color = 0xFF1D1F2A.toInt()
+                    alpha = 120
+                    style = Paint.Style.FILL
+                    clearShadowLayer()
+                },
+                dx = i.toFloat(),
+                dy = i.toFloat()
+            )
+        }
     }
 
-    val paint = when (layer.effect) {
-        TextEffect.NORMAL -> Paint(basePaint).apply {
-            color = layer.textColor
-        }
+    val effectPaint = when (layer.effect) {
+        TextEffect.NORMAL -> Paint(basePaint).apply { color = layer.textColor }
         TextEffect.OUTER_GLOW -> Paint(basePaint).apply {
             color = layer.textColor
             setShadowLayer(18f, 0f, 0f, 0xFF66F2FF.toInt())
@@ -160,11 +175,7 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         TextEffect.BEVEL -> Paint(basePaint).apply {
             shader = LinearGradient(
                 0f, 0f, layer.fontSize * layer.text.length, layer.fontSize,
-                intArrayOf(
-                    0xFFFFF9C4.toInt(),
-                    0xFFFFD54F.toInt(),
-                    0xFFB26A00.toInt()
-                ),
+                intArrayOf(0xFFFFF9C4.toInt(), 0xFFFFD54F.toInt(), 0xFFB26A00.toInt()),
                 null,
                 Shader.TileMode.CLAMP
             )
@@ -177,12 +188,7 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         TextEffect.CHROME -> Paint(basePaint).apply {
             shader = LinearGradient(
                 0f, 0f, layer.fontSize * layer.text.length, layer.fontSize,
-                intArrayOf(
-                    0xFFE0F2F1.toInt(),
-                    0xFFB0BEC5.toInt(),
-                    0xFF90A4AE.toInt(),
-                    0xFFE0F7FA.toInt()
-                ),
+                intArrayOf(0xFFE0F2F1.toInt(), 0xFFB0BEC5.toInt(), 0xFF90A4AE.toInt(), 0xFFE0F7FA.toInt()),
                 null,
                 Shader.TileMode.CLAMP
             )
@@ -190,11 +196,7 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         TextEffect.GOLD -> Paint(basePaint).apply {
             shader = LinearGradient(
                 0f, 0f, layer.fontSize * layer.text.length, 0f,
-                intArrayOf(
-                    0xFFFFE082.toInt(),
-                    0xFFFFD54F.toInt(),
-                    0xFFFFA726.toInt()
-                ),
+                intArrayOf(0xFFFFE082.toInt(), 0xFFFFD54F.toInt(), 0xFFFFA726.toInt()),
                 null,
                 Shader.TileMode.CLAMP
             )
@@ -206,11 +208,7 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         TextEffect.GRADIENT -> Paint(basePaint).apply {
             shader = LinearGradient(
                 0f, 0f, layer.fontSize * layer.text.length, layer.fontSize,
-                intArrayOf(
-                    0xFF60A5FA.toInt(),
-                    0xFF22D3EE.toInt(),
-                    0xFFF472B6.toInt()
-                ),
+                intArrayOf(0xFF60A5FA.toInt(), 0xFF22D3EE.toInt(), 0xFFF472B6.toInt()),
                 null,
                 Shader.TileMode.CLAMP
             )
@@ -228,24 +226,61 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         TextEffect.SATIN -> Paint(basePaint).apply {
             shader = LinearGradient(
                 0f, 0f, layer.fontSize * layer.text.length, 0f,
-                intArrayOf(
-                    0xFFFFFFFF.toInt(),
-                    0xFFE0E7FF.toInt(),
-                    0xFF93C5FD.toInt(),
-                    0xFFFFFFFF.toInt()
-                ),
+                intArrayOf(0xFFFFFFFF.toInt(), 0xFFE0E7FF.toInt(), 0xFF93C5FD.toInt(), 0xFFFFFFFF.toInt()),
                 null,
                 Shader.TileMode.CLAMP
             )
         }
     }
 
-    val metrics = paint.fontMetrics
+    if (layer.shadowRadius > 0f && layer.effect !in setOf(TextEffect.OUTER_GLOW, TextEffect.NEON)) {
+        passes += TextRenderPass(
+            paint = Paint(effectPaint).apply {
+                color = layer.shadowColor
+                alpha = 130
+                setShadowLayer(0f, 0f, 0f, 0x00000000)
+            },
+            dx = layer.shadowDx,
+            dy = layer.shadowDy
+        )
+    }
+
+    passes += TextRenderPass(paint = effectPaint)
+
+    if (layer.shape == com.example.fontcraftpro.data.model.TextShape.OUTLINE) {
+        passes += TextRenderPass(
+            paint = Paint(effectPaint).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = maxOf(layer.strokeWidth, 3f)
+                color = layer.strokeColor.takeIf { it != 0x00000000 } ?: 0xFFB9A8FF.toInt()
+                clearShadowLayer()
+            }
+        )
+    }
+
+    if (layer.strokeWidth > 0f && layer.strokeColor != 0x00000000 && layer.effect != TextEffect.STROKE) {
+        passes += TextRenderPass(
+            paint = Paint(effectPaint).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = layer.strokeWidth
+                color = layer.strokeColor
+                clearShadowLayer()
+            }
+        )
+    }
+
+    return passes
+}
+
+private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
+    val passes = buildTextRenderPasses(layer)
+    val basePaint = passes.firstOrNull()?.paint ?: return
+    val metrics = basePaint.fontMetrics
     val baseline = -metrics.ascent
     val xOffset = when (layer.textAlignment) {
         TextAlignment.LEFT -> 0f
-        TextAlignment.CENTER -> -paint.measureText(layer.text) / 2f
-        TextAlignment.RIGHT -> -paint.measureText(layer.text)
+        TextAlignment.CENTER -> -basePaint.measureText(layer.text) / 2f
+        TextAlignment.RIGHT -> -basePaint.measureText(layer.text)
     }
 
     canvas.save()
@@ -253,68 +288,18 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
     canvas.rotate(layer.rotation, 0f, 0f)
     canvas.scale(layer.scale, layer.scale)
 
-    if (layer.is3D && layer.extrudeDepth > 0) {
-        for (i in 1..layer.extrudeDepth) {
-            val extrudePaint = Paint(paint).apply {
-                color = 0xFF1D1F2A.toInt()
-                alpha = 120
-                style = Paint.Style.FILL
-            }
-            canvas.drawText(layer.text, xOffset + i.toFloat(), baseline + i.toFloat(), extrudePaint)
-        }
-    }
-
-    if (layer.effect == TextEffect.BEVEL) {
-        val shadow = Paint(paint).apply {
-            color = 0x66000000.toInt()
-            alpha = 120
-            setShadowLayer(0f, 3f, 3f, 0x66000000)
-        }
-        canvas.drawText(layer.text, xOffset + 2f, baseline + 2f, shadow)
-    }
-
-    if (layer.effect == TextEffect.INNER_GLOW) {
-        val inner = Paint(paint).apply {
-            color = 0x33000000
-            style = Paint.Style.FILL_AND_STROKE
-            setShadowLayer(8f, 0f, 0f, 0x66000000)
-        }
-        canvas.drawText(layer.text, xOffset, baseline, inner)
-    }
-
-    if (layer.shape == com.example.fontcraftpro.data.model.TextShape.OUTLINE) {
-        val outline = Paint(paint).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = maxOf(layer.strokeWidth, 3f)
-            color = layer.strokeColor.takeIf { it != 0x00000000 } ?: 0xFFB9A8FF.toInt()
-            clearShadowLayer()
-        }
-        canvas.drawText(layer.text, xOffset, baseline, outline)
-    }
-
-    if (layer.strokeWidth > 0f && layer.strokeColor != 0x00000000 && layer.effect != TextEffect.STROKE) {
-        val strokePaint = Paint(paint).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = layer.strokeWidth
-            color = layer.strokeColor
-            clearShadowLayer()
-        }
-        canvas.drawText(layer.text, xOffset, baseline, strokePaint)
-    }
-
     if (layer.curveOffset != 0f && layer.text.isNotEmpty()) {
         val radius = maxOf(120f, layer.fontSize * 2.3f)
         val path = android.graphics.Path().apply {
-            addArc(
-                -radius, -radius, radius, radius,
-                180f + layer.curveOffset,
-                180f - layer.curveOffset
-            )
+            addArc(-radius, -radius, radius, radius, 180f + layer.curveOffset, 180f - layer.curveOffset)
         }
-        val pathPaint = Paint(paint)
-        canvas.drawTextOnPath(layer.text, path, 0f, 0f, pathPaint)
+        passes.forEach { pass ->
+            canvas.drawTextOnPath(layer.text, path, pass.dx, pass.dy, pass.paint)
+        }
     } else {
-        canvas.drawText(layer.text, xOffset, baseline, paint)
+        passes.forEach { pass ->
+            canvas.drawText(layer.text, xOffset + pass.dx, baseline + pass.dy, pass.paint)
+        }
     }
 
     canvas.restore()
