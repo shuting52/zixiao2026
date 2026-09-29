@@ -39,6 +39,7 @@ data class TextLayer(
     val shadowColor: Int = 0x00000000,
     val textAlignment: TextAlignment = TextAlignment.LEFT,
     val effect: TextEffect = TextEffect.NORMAL,
+    val curveOffset: Float = 0f,
     override val scale: Float = 1f,
     override val rotation: Float = 0f,
     override val alpha: Float = 1f,

@@ -32,7 +32,8 @@ fun TextToolsPanel(
     onAlphaChange: (Float) -> Unit,
     onAlignmentChange: (TextAlignment) -> Unit,
     onFontChange: (String) -> Unit,
-    onEffectChange: (TextEffect) -> Unit
+    onEffectChange: (TextEffect) -> Unit,
+    onCurveChange: (Float) -> Unit
 ) {
     if (selected == null) return
 
@@ -119,6 +120,18 @@ fun TextToolsPanel(
             ).forEach { (effect, label) ->
                 OutlinedButton(
                     onClick = { onEffectChange(effect) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(label)
+                }
+            }
+        }
+
+        Text("弧形", style = MaterialTheme.typography.labelMedium)
+        Row {
+            listOf(0f to "直线", 32f to "上弧", -32f to "下弧").forEach { (curve, label) ->
+                OutlinedButton(
+                    onClick = { onCurveChange(curve) },
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
                     Text(label)

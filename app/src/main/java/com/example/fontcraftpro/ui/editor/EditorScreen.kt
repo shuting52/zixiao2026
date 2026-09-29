@@ -219,6 +219,9 @@ fun EditorScreen(
                         },
                         onEffectChange = { effect ->
                             viewModel.updateSelectedText { it.copy(effect = effect) }
+                        },
+                        onCurveChange = { curve ->
+                            viewModel.updateSelectedText { it.copy(curveOffset = curve) }
                         }
                     )
 

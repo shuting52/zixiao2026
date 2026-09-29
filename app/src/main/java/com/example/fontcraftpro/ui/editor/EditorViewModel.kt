@@ -231,7 +231,19 @@ class EditorViewModel @Inject constructor(
                         }
                         canvas.drawText(layer.text, xOffset, baseline, strokePaint)
                     }
-                    canvas.drawText(layer.text, xOffset, baseline, paint)
+                    if (layer.curveOffset != 0f && layer.text.isNotEmpty()) {
+                        val radius = maxOf(120f, layer.fontSize * 2.3f)
+                        val path = android.graphics.Path().apply {
+                            addArc(
+                                -radius, -radius, radius, radius,
+                                180f + layer.curveOffset,
+                                180f - layer.curveOffset
+                            )
+                        }
+                        canvas.drawTextOnPath(layer.text, path, 0f, 0f, paint)
+                    } else {
+                        canvas.drawText(layer.text, xOffset, baseline, paint)
+                    }
                     canvas.restore()
                 }
                 is ImageLayer -> {
