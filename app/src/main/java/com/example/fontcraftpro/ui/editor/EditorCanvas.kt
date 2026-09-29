@@ -22,6 +22,7 @@ import com.example.fontcraftpro.data.model.BackgroundType
 import com.example.fontcraftpro.data.model.ImageLayer
 import com.example.fontcraftpro.data.model.Layer
 import com.example.fontcraftpro.data.model.TextAlignment
+import com.example.fontcraftpro.data.model.TextAnimation
 import com.example.fontcraftpro.data.model.TextEffect
 import com.example.fontcraftpro.data.model.TextLayer
 
@@ -133,6 +134,13 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
             TextAlignment.CENTER -> Paint.Align.CENTER
             TextAlignment.RIGHT -> Paint.Align.RIGHT
         }
+    }
+
+    val animationScale = when (layer.animation) {
+        TextAnimation.NONE -> 1f
+        TextAnimation.PULSE -> 1.05f
+        TextAnimation.SWING -> 1f
+        TextAnimation.FADE -> 0.96f
     }
 
     val paint = when (layer.effect) {

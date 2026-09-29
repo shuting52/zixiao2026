@@ -23,6 +23,14 @@ enum class TextEffect {
 }
 
 @Serializable
+enum class TextAnimation {
+    NONE,
+    PULSE,
+    SWING,
+    FADE
+}
+
+@Serializable
 data class TextLayer(
     override val id: String,
     override val x: Float,
@@ -40,6 +48,7 @@ data class TextLayer(
     val textAlignment: TextAlignment = TextAlignment.LEFT,
     val effect: TextEffect = TextEffect.NORMAL,
     val curveOffset: Float = 0f,
+    val animation: TextAnimation = TextAnimation.NONE,
     override val scale: Float = 1f,
     override val rotation: Float = 0f,
     override val alpha: Float = 1f,

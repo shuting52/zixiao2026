@@ -33,7 +33,8 @@ fun TextToolsPanel(
     onAlignmentChange: (TextAlignment) -> Unit,
     onFontChange: (String) -> Unit,
     onEffectChange: (TextEffect) -> Unit,
-    onCurveChange: (Float) -> Unit
+    onCurveChange: (Float) -> Unit,
+    onAnimationChange: (com.example.fontcraftpro.data.model.TextAnimation) -> Unit
 ) {
     if (selected == null) return
 
@@ -132,6 +133,23 @@ fun TextToolsPanel(
             listOf(0f to "直线", 32f to "上弧", -32f to "下弧").forEach { (curve, label) ->
                 OutlinedButton(
                     onClick = { onCurveChange(curve) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(label)
+                }
+            }
+        }
+
+        Text("动画", style = MaterialTheme.typography.labelMedium)
+        Row {
+            listOf(
+                com.example.fontcraftpro.data.model.TextAnimation.NONE to "无",
+                com.example.fontcraftpro.data.model.TextAnimation.PULSE to "脉冲",
+                com.example.fontcraftpro.data.model.TextAnimation.SWING to "摆动",
+                com.example.fontcraftpro.data.model.TextAnimation.FADE to "淡入"
+            ).forEach { (animation, label) ->
+                OutlinedButton(
+                    onClick = { onAnimationChange(animation) },
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
                     Text(label)
