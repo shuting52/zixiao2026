@@ -44,6 +44,7 @@ fun EditorScreen(
 ) {
     var inputText by remember { mutableStateOf("2026 字体软件") }
     var showStickerSheet by remember { mutableStateOf(false) }
+    var exportMessage by remember { mutableStateOf("") }
 
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -154,6 +155,21 @@ fun EditorScreen(
                         Button(onClick = { viewModel.saveProject("工程 1") }) {
                             Text("保存")
                         }
+
+                        Button(onClick = {
+                            val path = viewModel.exportCurrentProjectImage()
+                            exportMessage = if (path != null) "已导出到: $path" else "导出失败"
+                        }) {
+                            Text("导出")
+                        }
+                    }
+
+                    if (exportMessage.isNotEmpty()) {
+                        Text(
+                            text = exportMessage,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
                     }
 
                     Row(
