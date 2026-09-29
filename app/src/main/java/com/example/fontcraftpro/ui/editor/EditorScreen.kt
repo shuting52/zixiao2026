@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fontcraftpro.data.model.BackgroundType
 import com.example.fontcraftpro.data.model.TextLayer
+import com.example.fontcraftpro.ui.settings.SettingsScreen
 import com.example.fontcraftpro.ui.theme.AppThemeMode
 import com.example.fontcraftpro.ui.theme.AppThemeSettings
 import com.example.fontcraftpro.ui.theme.ThemeBackground
@@ -44,6 +45,7 @@ fun EditorScreen(
 ) {
     var inputText by remember { mutableStateOf("2026 字体软件") }
     var showStickerSheet by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
     var exportMessage by remember { mutableStateOf("") }
 
     val imageLauncher = rememberLauncherForActivityResult(
@@ -97,6 +99,7 @@ fun EditorScreen(
                             }) { Text("深色") }
                             OutlinedButton(onClick = { imageLauncher.launch("image/*") }) { Text("图片") }
                             OutlinedButton(onClick = { videoLauncher.launch("video/*") }) { Text("视频") }
+                            OutlinedButton(onClick = { showSettings = true }) { Text("设置") }
                         }
                     }
                 )
@@ -251,6 +254,28 @@ fun EditorScreen(
                 showStickerSheet = false
             },
             onDismiss = { showStickerSheet = false }
+        )
+    }
+
+    if (showSettings) {
+        SettingsScreen(
+            onShareClick = {
+                exportMessage = "已准备分享：将软件链接分享给好友"
+                showSettings = false
+            },
+            onAboutClick = {
+                exportMessage = "关于我们：FontCraft Pro 字效工作室"
+                showSettings = false
+            },
+            onPrivacyClick = {
+                exportMessage = "隐私政策：仅在本地处理编辑内容，未上传用户数据"
+                showSettings = false
+            },
+            onGroupClick = {
+                exportMessage = "官方群：欢迎加入字效创作者交流群"
+                showSettings = false
+            },
+            onDismiss = { showSettings = false }
         )
     }
 }
