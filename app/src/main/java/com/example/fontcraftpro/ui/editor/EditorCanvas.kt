@@ -139,9 +139,43 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         TextEffect.NORMAL -> Paint(basePaint).apply {
             color = layer.textColor
         }
-        TextEffect.GLOW -> Paint(basePaint).apply {
+        TextEffect.OUTER_GLOW -> Paint(basePaint).apply {
             color = layer.textColor
             setShadowLayer(18f, 0f, 0f, 0xFF66F2FF.toInt())
+        }
+        TextEffect.INNER_GLOW -> Paint(basePaint).apply {
+            color = layer.textColor
+            setShadowLayer(10f, 0f, 0f, 0x44000000)
+        }
+        TextEffect.BEVEL -> Paint(basePaint).apply {
+            shader = LinearGradient(
+                0f, 0f, layer.fontSize * layer.text.length, layer.fontSize,
+                intArrayOf(
+                    0xFFFFF9C4.toInt(),
+                    0xFFFFD54F.toInt(),
+                    0xFFB26A00.toInt()
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
+        }
+        TextEffect.STROKE -> Paint(basePaint).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = maxOf(layer.strokeWidth, 4f)
+            color = layer.strokeColor.takeIf { it != 0x00000000 } ?: 0xFF7C4DFF.toInt()
+        }
+        TextEffect.CHROME -> Paint(basePaint).apply {
+            shader = LinearGradient(
+                0f, 0f, layer.fontSize * layer.text.length, layer.fontSize,
+                intArrayOf(
+                    0xFFE0F2F1.toInt(),
+                    0xFFB0BEC5.toInt(),
+                    0xFF90A4AE.toInt(),
+                    0xFFE0F7FA.toInt()
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
         }
         TextEffect.GOLD -> Paint(basePaint).apply {
             shader = LinearGradient(
@@ -186,7 +220,25 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
     canvas.rotate(layer.rotation, 0f, 0f)
     canvas.scale(layer.scale, layer.scale)
 
-    if (layer.strokeWidth > 0f && layer.strokeColor != 0x00000000) {
+    if (layer.effect == TextEffect.BEVEL) {
+        val shadow = Paint(paint).apply {
+            color = 0x66000000.toInt()
+            alpha = 120
+            setShadowLayer(0f, 3f, 3f, 0x66000000)
+        }
+        canvas.drawText(layer.text, xOffset + 2f, baseline + 2f, shadow)
+    }
+
+    if (layer.effect == TextEffect.INNER_GLOW) {
+        val inner = Paint(paint).apply {
+            color = 0x33000000
+            style = Paint.Style.FILL_AND_STROKE
+            setShadowLayer(8f, 0f, 0f, 0x66000000)
+        }
+        canvas.drawText(layer.text, xOffset, baseline, inner)
+    }
+
+    if (layer.strokeWidth > 0f && layer.strokeColor != 0x00000000 && layer.effect != TextEffect.STROKE) {
         val strokePaint = Paint(paint).apply {
             style = Paint.Style.STROKE
             strokeWidth = layer.strokeWidth

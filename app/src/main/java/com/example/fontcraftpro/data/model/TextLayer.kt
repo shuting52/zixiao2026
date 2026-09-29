@@ -12,7 +12,11 @@ enum class TextAlignment {
 @Serializable
 enum class TextEffect {
     NORMAL,
-    GLOW,
+    OUTER_GLOW,
+    INNER_GLOW,
+    BEVEL,
+    STROKE,
+    CHROME,
     GOLD,
     NEON,
     GRADIENT

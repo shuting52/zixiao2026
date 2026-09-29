@@ -108,7 +108,11 @@ fun TextToolsPanel(
         Row {
             listOf(
                 TextEffect.NORMAL to "普通",
-                TextEffect.GLOW to "发光",
+                TextEffect.OUTER_GLOW to "外发光",
+                TextEffect.INNER_GLOW to "内发光",
+                TextEffect.BEVEL to "浮雕",
+                TextEffect.STROKE to "描边",
+                TextEffect.CHROME to "铬金",
                 TextEffect.GOLD to "金色",
                 TextEffect.NEON to "霓虹",
                 TextEffect.GRADIENT to "渐变"
