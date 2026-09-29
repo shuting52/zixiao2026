@@ -21,6 +21,7 @@ import com.example.fontcraftpro.data.model.Layer
 import com.example.fontcraftpro.data.model.Project
 import com.example.fontcraftpro.data.model.TextAlignment
 import com.example.fontcraftpro.data.model.TextLayer
+import com.example.fontcraftpro.data.model.TextPreset
 import com.example.fontcraftpro.data.repository.ProjectRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -127,6 +128,73 @@ class EditorViewModel @Inject constructor(
         val index = layers.indexOfFirst { it.id == id }
         val item = layers.getOrNull(index) as? TextLayer ?: return
         layers[index] = block(item)
+    }
+
+    fun applyTextPreset(preset: TextPreset) {
+        val id = selectedId ?: return
+        val index = layers.indexOfFirst { it.id == id }
+        val item = layers.getOrNull(index) as? TextLayer ?: return
+
+        val styled = when (preset) {
+            TextPreset.POSTER -> item.copy(
+                fontSize = 88f,
+                textColor = 0xFFFFF3C4.toInt(),
+                strokeColor = 0xFFB13535.toInt(),
+                strokeWidth = 6f,
+                shadowRadius = 18f,
+                shadowColor = 0xAA000000,
+                effect = com.example.fontcraftpro.data.model.TextEffect.OUTER_GLOW,
+                animation = com.example.fontcraftpro.data.model.TextAnimation.PULSE,
+                preset = preset
+            )
+            TextPreset.NEON -> item.copy(
+                fontSize = 92f,
+                textColor = 0xFFB5F1FF.toInt(),
+                strokeColor = 0xFF7C4DFF.toInt(),
+                strokeWidth = 4f,
+                shadowRadius = 22f,
+                shadowColor = 0xFF7C4DFF.toInt(),
+                effect = com.example.fontcraftpro.data.model.TextEffect.NEON,
+                animation = com.example.fontcraftpro.data.model.TextAnimation.FADE,
+                preset = preset
+            )
+            TextPreset.METAL -> item.copy(
+                fontSize = 90f,
+                textColor = 0xFFE0EAF1.toInt(),
+                strokeColor = 0xFF4B5563.toInt(),
+                strokeWidth = 3f,
+                shadowRadius = 12f,
+                shadowColor = 0x66000000,
+                effect = com.example.fontcraftpro.data.model.TextEffect.CHROME,
+                animation = com.example.fontcraftpro.data.model.TextAnimation.SWING,
+                preset = preset
+            )
+            TextPreset.RETRO -> item.copy(
+                fontSize = 78f,
+                textColor = 0xFFFFD8A8.toInt(),
+                strokeColor = 0xFF7B4B2A.toInt(),
+                strokeWidth = 5f,
+                shadowRadius = 8f,
+                shadowColor = 0x66000000,
+                effect = com.example.fontcraftpro.data.model.TextEffect.BEVEL,
+                animation = com.example.fontcraftpro.data.model.TextAnimation.NONE,
+                preset = preset
+            )
+            TextPreset.POP -> item.copy(
+                fontSize = 94f,
+                textColor = 0xFFFF6EC7.toInt(),
+                strokeColor = 0xFF4F46E5.toInt(),
+                strokeWidth = 6f,
+                shadowRadius = 20f,
+                shadowColor = 0xFF4F46E5.toInt(),
+                effect = com.example.fontcraftpro.data.model.TextEffect.GRADIENT,
+                animation = com.example.fontcraftpro.data.model.TextAnimation.PULSE,
+                preset = preset
+            )
+            TextPreset.CUSTOM -> item.copy(preset = preset)
+        }
+
+        layers[index] = styled
     }
 
     fun deleteSelected() {

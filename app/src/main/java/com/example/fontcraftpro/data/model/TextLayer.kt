@@ -31,6 +31,16 @@ enum class TextAnimation {
 }
 
 @Serializable
+enum class TextPreset {
+    CUSTOM,
+    POSTER,
+    NEON,
+    METAL,
+    RETRO,
+    POP
+}
+
+@Serializable
 data class TextLayer(
     override val id: String,
     override val x: Float,
@@ -49,6 +59,7 @@ data class TextLayer(
     val effect: TextEffect = TextEffect.NORMAL,
     val curveOffset: Float = 0f,
     val animation: TextAnimation = TextAnimation.NONE,
+    val preset: TextPreset = TextPreset.CUSTOM,
     override val scale: Float = 1f,
     override val rotation: Float = 0f,
     override val alpha: Float = 1f,

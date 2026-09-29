@@ -225,6 +225,9 @@ fun EditorScreen(
                         },
                         onAnimationChange = { animation ->
                             viewModel.updateSelectedText { it.copy(animation = animation) }
+                        },
+                        onPresetApply = { preset ->
+                            viewModel.applyTextPreset(preset)
                         }
                     )
 

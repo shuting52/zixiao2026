@@ -34,7 +34,8 @@ fun TextToolsPanel(
     onFontChange: (String) -> Unit,
     onEffectChange: (TextEffect) -> Unit,
     onCurveChange: (Float) -> Unit,
-    onAnimationChange: (com.example.fontcraftpro.data.model.TextAnimation) -> Unit
+    onAnimationChange: (com.example.fontcraftpro.data.model.TextAnimation) -> Unit,
+    onPresetApply: (com.example.fontcraftpro.data.model.TextPreset) -> Unit
 ) {
     if (selected == null) return
 
@@ -150,6 +151,24 @@ fun TextToolsPanel(
             ).forEach { (animation, label) ->
                 OutlinedButton(
                     onClick = { onAnimationChange(animation) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(label)
+                }
+            }
+        }
+
+        Text("模板", style = MaterialTheme.typography.labelMedium)
+        Row {
+            listOf(
+                com.example.fontcraftpro.data.model.TextPreset.POSTER to "海报",
+                com.example.fontcraftpro.data.model.TextPreset.NEON to "霓虹",
+                com.example.fontcraftpro.data.model.TextPreset.METAL to "金属",
+                com.example.fontcraftpro.data.model.TextPreset.RETRO to "复古",
+                com.example.fontcraftpro.data.model.TextPreset.POP to "流行"
+            ).forEach { (preset, label) ->
+                OutlinedButton(
+                    onClick = { onPresetApply(preset) },
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
                     Text(label)
