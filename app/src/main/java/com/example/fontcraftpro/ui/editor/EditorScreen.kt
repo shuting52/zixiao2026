@@ -76,6 +76,8 @@ fun EditorScreen(
     onThemeSettingsChange: (AppThemeSettings) -> Unit = {}
 ) {
     var inputText by remember { mutableStateOf("2026 字体软件") }
+    var replaceFromText by remember { mutableStateOf("") }
+    var replaceToText by remember { mutableStateOf("") }
     var showStickerSheet by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var exportMessage by remember { mutableStateOf("") }
@@ -213,6 +215,46 @@ fun EditorScreen(
                         }) {
                             Text("导出")
                         }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(onClick = { viewModel.duplicateSelectedTextLayer() }) {
+                            Text("复制样式")
+                        }
+                        Button(onClick = { viewModel.applySelectedStyleToAll() }) {
+                            Text("全局套用")
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = replaceFromText,
+                            onValueChange = { replaceFromText = it },
+                            label = { Text("替换词") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = replaceToText,
+                            onValueChange = { replaceToText = it },
+                            label = { Text("新词") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            viewModel.replaceTextAcrossLayers(replaceFromText, replaceToText)
+                            exportMessage = "已批量替换文字：$replaceFromText -> $replaceToText"
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("批量替换")
                     }
 
                     if (exportMessage.isNotEmpty()) {

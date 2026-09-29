@@ -197,6 +197,56 @@ class EditorViewModel @Inject constructor(
         layers[index] = styled
     }
 
+    fun duplicateSelectedTextLayer() {
+        val id = selectedId ?: return
+        val item = layers.firstOrNull { it.id == id } as? TextLayer ?: return
+        val duplicate = item.copy(
+            id = UUID.randomUUID().toString(),
+            x = item.x + 40f,
+            y = item.y + 60f,
+            text = "${item.text} 复制"
+        )
+        layers.add(duplicate)
+        selectedId = duplicate.id
+    }
+
+    fun applySelectedStyleToAll() {
+        val source = layers.firstOrNull { it.id == selectedId } as? TextLayer ?: return
+
+        for (i in layers.indices) {
+            val layer = layers[i]
+            if (layer is TextLayer) {
+                layers[i] = layer.copy(
+                    fontName = source.fontName,
+                    fontSize = source.fontSize,
+                    textColor = source.textColor,
+                    strokeColor = source.strokeColor,
+                    strokeWidth = source.strokeWidth,
+                    shadowRadius = source.shadowRadius,
+                    shadowDx = source.shadowDx,
+                    shadowDy = source.shadowDy,
+                    shadowColor = source.shadowColor,
+                    textAlignment = source.textAlignment,
+                    effect = source.effect,
+                    curveOffset = source.curveOffset,
+                    animation = source.animation,
+                    preset = source.preset,
+                    alpha = source.alpha
+                )
+            }
+        }
+    }
+
+    fun replaceTextAcrossLayers(from: String, to: String) {
+        if (from.isBlank()) return
+        for (i in layers.indices) {
+            val layer = layers[i]
+            if (layer is TextLayer) {
+                layers[i] = layer.copy(text = layer.text.replace(from, to))
+            }
+        }
+    }
+
     fun deleteSelected() {
         selectedId?.let { id ->
             layers.removeIf { it.id == id }
