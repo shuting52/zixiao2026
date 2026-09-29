@@ -1,5 +1,7 @@
 package com.example.fontcraftpro.ui.editor
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,14 +29,44 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fontcraftpro.data.model.BackgroundType
 import com.example.fontcraftpro.data.model.TextLayer
+import com.example.fontcraftpro.data.model.TextPreset
 import com.example.fontcraftpro.ui.settings.SettingsScreen
 import com.example.fontcraftpro.ui.theme.AppThemeMode
 import com.example.fontcraftpro.ui.theme.AppThemeSettings
 import com.example.fontcraftpro.ui.theme.ThemeBackground
+
+private fun readImportedText(context: Context, uri: Uri): String {
+    return try {
+        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+        val text = if (bytes != null) {
+            val decoded = bytes.decodeToString()
+            decoded.filter { it.isLetterOrDigit() || it.isWhitespace() || it in "-_:.,/!@#$%^&*()+=[]{}<>|\\~`'\"" }
+        } else {
+            ""
+        }
+
+        val normalized = text
+            .replace("\u0000", "")
+            .replace(Regex("[\\r\\n\\t]+"), " ")
+            .replace(Regex("\\s{2,}"), " ")
+            .trim()
+
+        if (normalized.isNotBlank()) normalized.take(240) else {
+            val fallback = uri.lastPathSegment?.substringAfterLast('/')?.substringBeforeLast('.')
+                ?: "导入文字"
+            fallback.ifBlank { "导入文字" }
+        }
+    } catch (_: Exception) {
+        val fallback = uri.lastPathSegment?.substringAfterLast('/')?.substringBeforeLast('.')
+            ?: "导入文字"
+        fallback.ifBlank { "导入文字" }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +79,7 @@ fun EditorScreen(
     var showStickerSheet by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var exportMessage by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -76,6 +109,18 @@ fun EditorScreen(
         }
     )
 
+    val sourceImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri: Uri? ->
+            if (uri == null) return@rememberLauncherForActivityResult
+
+            val importedText = readImportedText(context, uri)
+            viewModel.addText(importedText)
+            viewModel.applyTextPreset(TextPreset.POSTER)
+            exportMessage = "已导入可编辑文字：${importedText.take(18)}${if (importedText.length > 18) "..." else ""}"
+        }
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
         ThemeBackground(themeSettings = themeSettings)
 
@@ -99,6 +144,9 @@ fun EditorScreen(
                             }) { Text("深色") }
                             OutlinedButton(onClick = { imageLauncher.launch("image/*") }) { Text("图片") }
                             OutlinedButton(onClick = { videoLauncher.launch("video/*") }) { Text("视频") }
+                            OutlinedButton(onClick = {
+                                sourceImportLauncher.launch(arrayOf("*/*"))
+                            }) { Text("导入PLP/PSD") }
                             OutlinedButton(onClick = { showSettings = true }) { Text("设置") }
                         }
                     }
@@ -260,6 +308,11 @@ fun EditorScreen(
     if (showSettings) {
         SettingsScreen(
             onShareClick = {
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "我在用 FontCraft Pro 字效编辑器，推荐你也试试！")
+                }
+                context.startActivity(Intent.createChooser(shareIntent, "分享软件"))
                 exportMessage = "已准备分享：将软件链接分享给好友"
                 showSettings = false
             },
@@ -271,8 +324,15 @@ fun EditorScreen(
                 exportMessage = "隐私政策：仅在本地处理编辑内容，未上传用户数据"
                 showSettings = false
             },
+            onImportClick = {
+                sourceImportLauncher.launch(arrayOf("*/*"))
+                showSettings = false
+            },
             onGroupClick = {
-                exportMessage = "官方群：欢迎加入字效创作者交流群"
+                val url = "https://qm.qq.com/q/1I8Vg4TnJy"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                context.startActivity(intent)
+                exportMessage = "已打开官方群邀请链接：白嫖圣手:懒得找官群"
                 showSettings = false
             },
             onDismiss = { showSettings = false }

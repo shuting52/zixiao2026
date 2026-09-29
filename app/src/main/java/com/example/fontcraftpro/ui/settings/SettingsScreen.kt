@@ -25,6 +25,7 @@ fun SettingsScreen(
     onShareClick: () -> Unit = {},
     onAboutClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
+    onImportClick: () -> Unit = {},
     onGroupClick: () -> Unit = {},
     onDismiss: () -> Unit = {}
 ) {
@@ -50,6 +51,7 @@ fun SettingsScreen(
                 SettingItem("分享软件", onShareClick)
                 SettingItem("关于我们", onAboutClick)
                 SettingItem("隐私政策", onPrivacyClick)
+                SettingItem("导入 PLP/PSD", onImportClick)
                 SettingItem("官方群", onGroupClick)
 
                 Row(
