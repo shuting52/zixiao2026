@@ -7,6 +7,7 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Environment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -31,6 +32,11 @@ import java.io.FileOutputStream
 import java.util.UUID
 import javax.inject.Inject
 
+data class ImportedFont(
+    val name: String,
+    val path: String
+)
+
 @HiltViewModel
 class EditorViewModel @Inject constructor(
     private val repository: ProjectRepository,
@@ -38,6 +44,7 @@ class EditorViewModel @Inject constructor(
 ) : ViewModel() {
 
     val layers = mutableStateListOf<Layer>()
+    val importedFonts = mutableStateListOf<ImportedFont>()
     var selectedId by mutableStateOf<String?>(null)
         private set
 
@@ -128,6 +135,26 @@ class EditorViewModel @Inject constructor(
         val index = layers.indexOfFirst { it.id == id }
         val item = layers.getOrNull(index) as? TextLayer ?: return
         layers[index] = block(item)
+    }
+
+    fun importFontFromUri(uri: Uri): String? {
+        return try {
+            val input = context.contentResolver.openInputStream(uri) ?: return null
+            val ext = (uri.lastPathSegment?.substringAfterLast('.') ?: "ttf").lowercase()
+            val file = File(context.cacheDir, "font_${System.currentTimeMillis()}.$ext")
+            input.use { stream ->
+                file.outputStream().use { out -> stream.copyTo(out) }
+            }
+            val name = file.nameWithoutExtension.ifBlank { "自定义字体" }
+            importedFonts.add(ImportedFont(name = name, path = file.absolutePath))
+            file.absolutePath
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun applyImportedFont(font: ImportedFont) {
+        updateSelectedText { it.copy(fontName = "custom", fontPath = font.path, is3D = true, extrudeDepth = 6) }
     }
 
     fun applyTextPreset(preset: TextPreset) {

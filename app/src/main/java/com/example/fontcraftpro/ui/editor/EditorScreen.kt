@@ -70,21 +70,6 @@ private fun readImportedText(context: Context, uri: Uri): String {
     }
 }
 
-private fun saveImportedFont(context: Context, uri: Uri): String? {
-    return try {
-        val input = context.contentResolver.openInputStream(uri) ?: return null
-        val ext = uri.lastPathSegment?.substringAfterLast('.')?.lowercase() ?: "ttf"
-        val file = File(context.cacheDir, "custom_font_${System.currentTimeMillis()}.$ext")
-        input.use { stream ->
-            file.outputStream().use { out ->
-                stream.copyTo(out)
-            }
-        }
-        file.absolutePath
-    } catch (_: Exception) {
-        null
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,6 +83,7 @@ fun EditorScreen(
     var replaceToText by remember { mutableStateOf("") }
     var showStickerSheet by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    var showFontLibrary by remember { mutableStateOf(false) }
     var exportMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -145,9 +131,10 @@ fun EditorScreen(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri: Uri? ->
             if (uri == null) return@rememberLauncherForActivityResult
-            val filePath = saveImportedFont(context, uri) ?: return@rememberLauncherForActivityResult
+            val filePath = viewModel.importFontFromUri(uri) ?: return@rememberLauncherForActivityResult
             viewModel.updateSelectedText { it.copy(fontName = "custom", fontPath = filePath, is3D = true, extrudeDepth = 6) }
             exportMessage = "已导入本地字体：${uri.lastPathSegment ?: "字体"}"
+            showFontLibrary = true
         }
     )
 
@@ -174,7 +161,8 @@ fun EditorScreen(
                             }) { Text("深色") }
                             OutlinedButton(onClick = { imageLauncher.launch("image/*") }) { Text("图片") }
                             OutlinedButton(onClick = { videoLauncher.launch("video/*") }) { Text("视频") }
-                            OutlinedButton(onClick = { fontImportLauncher.launch(arrayOf("font/ttf", "font/otf", "application/x-font-ttf", "application/octet-stream", "*/*")) }) { Text("字体") }
+                            OutlinedButton(onClick = { showFontLibrary = true }) { Text("字体库") }
+                            OutlinedButton(onClick = { fontImportLauncher.launch(arrayOf("font/ttf", "font/otf", "application/x-font-ttf", "application/octet-stream", "*/*")) }) { Text("导入字体") }
                             OutlinedButton(onClick = {
                                 sourceImportLauncher.launch(arrayOf("*/*"))
                             }) { Text("导入PLP/PSD") }
@@ -385,6 +373,17 @@ fun EditorScreen(
                 showStickerSheet = false
             },
             onDismiss = { showStickerSheet = false }
+        )
+    }
+
+    if (showFontLibrary) {
+        FontLibrarySheet(
+            fonts = viewModel.importedFonts,
+            onApply = { font ->
+                viewModel.applyImportedFont(font)
+                showFontLibrary = false
+            },
+            onDismiss = { showFontLibrary = false }
         )
     }
 
