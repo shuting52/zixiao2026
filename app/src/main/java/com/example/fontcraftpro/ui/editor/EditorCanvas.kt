@@ -21,6 +21,7 @@ import com.example.fontcraftpro.data.model.Background
 import com.example.fontcraftpro.data.model.BackgroundType
 import com.example.fontcraftpro.data.model.ImageLayer
 import com.example.fontcraftpro.data.model.Layer
+import com.example.fontcraftpro.data.model.TextAlignment
 import com.example.fontcraftpro.data.model.TextLayer
 
 @Composable
@@ -119,7 +120,12 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         textSize = layer.fontSize
         color = layer.textColor
         typeface = Typeface.DEFAULT_BOLD
-        textAlign = Paint.Align.LEFT
+        alpha = (layer.alpha * 255).toInt().coerceIn(0, 255)
+        textAlign = when (layer.textAlignment) {
+            TextAlignment.LEFT -> Paint.Align.LEFT
+            TextAlignment.CENTER -> Paint.Align.CENTER
+            TextAlignment.RIGHT -> Paint.Align.RIGHT
+        }
         if (layer.shadowRadius > 0f) {
             setShadowLayer(layer.shadowRadius, layer.shadowDx, layer.shadowDy, layer.shadowColor)
         }
@@ -127,6 +133,11 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
 
     val metrics = paint.fontMetrics
     val baseline = -metrics.ascent
+    val xOffset = when (layer.textAlignment) {
+        TextAlignment.LEFT -> 0f
+        TextAlignment.CENTER -> -paint.measureText(layer.text) / 2f
+        TextAlignment.RIGHT -> -paint.measureText(layer.text)
+    }
 
     canvas.save()
     canvas.translate(layer.x, layer.y)
@@ -140,10 +151,10 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
             color = layer.strokeColor
             clearShadowLayer()
         }
-        canvas.drawText(layer.text, 0f, baseline, strokePaint)
+        canvas.drawText(layer.text, xOffset, baseline, strokePaint)
     }
 
-    canvas.drawText(layer.text, 0f, baseline, paint)
+    canvas.drawText(layer.text, xOffset, baseline, paint)
     canvas.restore()
 }
 
@@ -187,17 +198,25 @@ private fun drawSelectionBox(canvas: android.graphics.Canvas, layer: Layer) {
     }
 
     val rect = when (layer) {
-        is TextLayer -> RectF(
-            layer.x,
-            layer.y,
-            layer.x + layer.fontSize * layer.text.length * 0.6f,
-            layer.y + layer.fontSize * 1.2f
-        )
+        is TextLayer -> {
+            val width = layer.fontSize * layer.text.length * 0.6f
+            val left = when (layer.textAlignment) {
+                TextAlignment.LEFT -> 0f
+                TextAlignment.CENTER -> -width / 2f
+                TextAlignment.RIGHT -> -width
+            }
+            RectF(
+                left,
+                0f,
+                left + width,
+                layer.fontSize * 1.2f
+            )
+        }
         is ImageLayer -> RectF(
-            layer.x,
-            layer.y,
-            layer.x + layer.width,
-            layer.y + layer.height
+            0f,
+            0f,
+            layer.width,
+            layer.height
         )
         else -> RectF()
     }

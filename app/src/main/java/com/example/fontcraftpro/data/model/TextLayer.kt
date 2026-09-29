@@ -3,6 +3,13 @@ package com.example.fontcraftpro.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class TextAlignment {
+    LEFT,
+    CENTER,
+    RIGHT
+}
+
+@Serializable
 data class TextLayer(
     override val id: String,
     override val x: Float,
@@ -17,6 +24,7 @@ data class TextLayer(
     val shadowDx: Float = 0f,
     val shadowDy: Float = 0f,
     val shadowColor: Int = 0x00000000,
+    val textAlignment: TextAlignment = TextAlignment.LEFT,
     override val scale: Float = 1f,
     override val rotation: Float = 0f,
     override val alpha: Float = 1f,

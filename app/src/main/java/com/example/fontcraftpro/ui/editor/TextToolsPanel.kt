@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import com.example.fontcraftpro.data.model.TextAlignment
 import com.example.fontcraftpro.data.model.TextLayer
 
 @Composable
@@ -25,7 +27,9 @@ fun TextToolsPanel(
     onTextSizeChange: (Float) -> Unit,
     onStrokeWidthChange: (Float) -> Unit,
     onShadowRadiusChange: (Float) -> Unit,
-    onColorChange: (Int) -> Unit
+    onColorChange: (Int) -> Unit,
+    onAlphaChange: (Float) -> Unit,
+    onAlignmentChange: (TextAlignment) -> Unit
 ) {
     if (selected == null) return
 
@@ -54,6 +58,31 @@ fun TextToolsPanel(
             onValueChange = onShadowRadiusChange,
             valueRange = 0f..30f
         )
+
+        Text("透明度: ${(selected.alpha * 100).toInt()}%", style = MaterialTheme.typography.labelMedium)
+        Slider(
+            value = selected.alpha,
+            onValueChange = onAlphaChange,
+            valueRange = 0.2f..1f
+        )
+
+        Text("对齐", style = MaterialTheme.typography.labelMedium)
+        Row {
+            listOf(TextAlignment.LEFT, TextAlignment.CENTER, TextAlignment.RIGHT).forEach { alignment ->
+                val label = when (alignment) {
+                    TextAlignment.LEFT -> "左"
+                    TextAlignment.CENTER -> "中"
+                    TextAlignment.RIGHT -> "右"
+                }
+
+                OutlinedButton(
+                    onClick = { onAlignmentChange(alignment) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(label)
+                }
+            }
+        }
 
         Row(modifier = Modifier.padding(top = 8.dp)) {
             listOf(

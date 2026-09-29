@@ -191,6 +191,12 @@ fun EditorScreen(
                         },
                         onColorChange = { color ->
                             viewModel.updateSelectedText { it.copy(textColor = color) }
+                        },
+                        onAlphaChange = { value ->
+                            viewModel.updateSelectedText { it.copy(alpha = value) }
+                        },
+                        onAlignmentChange = { alignment ->
+                            viewModel.updateSelectedText { it.copy(textAlignment = alignment) }
                         }
                     )
 
