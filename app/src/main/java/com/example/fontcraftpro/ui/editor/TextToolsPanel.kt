@@ -162,7 +162,10 @@ fun TextToolsPanel(
                 TextEffect.CHROME to "铬金",
                 TextEffect.GOLD to "金色",
                 TextEffect.NEON to "霓虹",
-                TextEffect.GRADIENT to "渐变"
+                TextEffect.GRADIENT to "渐变",
+                TextEffect.CUTOUT to "穿透",
+                TextEffect.INNER_SHADOW to "内阴影",
+                TextEffect.SATIN to "缎面"
             ).forEach { (effect, label) ->
                 OutlinedButton(
                     onClick = { onEffectChange(effect) },
@@ -209,7 +212,8 @@ fun TextToolsPanel(
                 com.example.fontcraftpro.data.model.TextPreset.NEON to "霓虹",
                 com.example.fontcraftpro.data.model.TextPreset.METAL to "金属",
                 com.example.fontcraftpro.data.model.TextPreset.RETRO to "复古",
-                com.example.fontcraftpro.data.model.TextPreset.POP to "流行"
+                com.example.fontcraftpro.data.model.TextPreset.POP to "流行",
+                com.example.fontcraftpro.data.model.TextPreset.PHOTOSHOP to "PS"
             ).forEach { (preset, label) ->
                 OutlinedButton(
                     onClick = { onPresetApply(preset) },

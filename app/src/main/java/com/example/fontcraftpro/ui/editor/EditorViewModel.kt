@@ -191,6 +191,20 @@ class EditorViewModel @Inject constructor(
                 animation = com.example.fontcraftpro.data.model.TextAnimation.PULSE,
                 preset = preset
             )
+            TextPreset.PHOTOSHOP -> item.copy(
+                fontSize = 96f,
+                textColor = 0xFFF2F4FF.toInt(),
+                strokeColor = 0xFF2D3748.toInt(),
+                strokeWidth = 8f,
+                shadowRadius = 28f,
+                shadowColor = 0xBF1F2937.toInt(),
+                effect = com.example.fontcraftpro.data.model.TextEffect.CUTOUT,
+                animation = com.example.fontcraftpro.data.model.TextAnimation.SWING,
+                shape = com.example.fontcraftpro.data.model.TextShape.OUTLINE,
+                is3D = true,
+                extrudeDepth = 10,
+                preset = preset
+            )
             TextPreset.CUSTOM -> item.copy(preset = preset)
         }
 

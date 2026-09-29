@@ -215,6 +215,29 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
                 Shader.TileMode.CLAMP
             )
         }
+        TextEffect.CUTOUT -> Paint(basePaint).apply {
+            color = layer.textColor
+            style = Paint.Style.FILL
+            alpha = 180
+            setShadowLayer(18f, 0f, 0f, 0x99000000)
+        }
+        TextEffect.INNER_SHADOW -> Paint(basePaint).apply {
+            color = layer.textColor
+            setShadowLayer(16f, 2f, 2f, 0x33000000)
+        }
+        TextEffect.SATIN -> Paint(basePaint).apply {
+            shader = LinearGradient(
+                0f, 0f, layer.fontSize * layer.text.length, 0f,
+                intArrayOf(
+                    0xFFFFFFFF.toInt(),
+                    0xFFE0E7FF.toInt(),
+                    0xFF93C5FD.toInt(),
+                    0xFFFFFFFF.toInt()
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
+        }
     }
 
     val metrics = paint.fontMetrics

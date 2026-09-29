@@ -19,7 +19,10 @@ enum class TextEffect {
     CHROME,
     GOLD,
     NEON,
-    GRADIENT
+    GRADIENT,
+    CUTOUT,
+    INNER_SHADOW,
+    SATIN
 }
 
 @Serializable
@@ -44,7 +47,8 @@ enum class TextPreset {
     NEON,
     METAL,
     RETRO,
-    POP
+    POP,
+    PHOTOSHOP
 }
 
 @Serializable
