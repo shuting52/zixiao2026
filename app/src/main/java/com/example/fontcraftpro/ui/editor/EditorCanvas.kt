@@ -116,10 +116,17 @@ private fun drawLayerToCanvas(canvas: android.graphics.Canvas, layer: Layer) {
 }
 
 private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
+    val customTypeface = when (layer.fontName) {
+        "bold" -> Typeface.DEFAULT_BOLD
+        "serif" -> Typeface.SERIF
+        "mono" -> Typeface.MONOSPACE
+        else -> Typeface.DEFAULT
+    }
+
     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = layer.fontSize
         color = layer.textColor
-        typeface = Typeface.DEFAULT_BOLD
+        typeface = customTypeface
         alpha = (layer.alpha * 255).toInt().coerceIn(0, 255)
         textAlign = when (layer.textAlignment) {
             TextAlignment.LEFT -> Paint.Align.LEFT

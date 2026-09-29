@@ -197,6 +197,9 @@ fun EditorScreen(
                         },
                         onAlignmentChange = { alignment ->
                             viewModel.updateSelectedText { it.copy(textAlignment = alignment) }
+                        },
+                        onFontChange = { fontName ->
+                            viewModel.updateSelectedText { it.copy(fontName = fontName) }
                         }
                     )
 

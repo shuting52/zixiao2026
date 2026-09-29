@@ -29,7 +29,8 @@ fun TextToolsPanel(
     onShadowRadiusChange: (Float) -> Unit,
     onColorChange: (Int) -> Unit,
     onAlphaChange: (Float) -> Unit,
-    onAlignmentChange: (TextAlignment) -> Unit
+    onAlignmentChange: (TextAlignment) -> Unit,
+    onFontChange: (String) -> Unit
 ) {
     if (selected == null) return
 
@@ -77,6 +78,23 @@ fun TextToolsPanel(
 
                 OutlinedButton(
                     onClick = { onAlignmentChange(alignment) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(label)
+                }
+            }
+        }
+
+        Text("字体", style = MaterialTheme.typography.labelMedium)
+        Row {
+            listOf(
+                "default" to "默认",
+                "bold" to "粗体",
+                "serif" to "衬线",
+                "mono" to "等宽"
+            ).forEach { (fontName, label) ->
+                OutlinedButton(
+                    onClick = { onFontChange(fontName) },
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
                     Text(label)
