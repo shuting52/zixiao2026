@@ -216,6 +216,9 @@ fun EditorScreen(
                         },
                         onFontChange = { fontName ->
                             viewModel.updateSelectedText { it.copy(fontName = fontName) }
+                        },
+                        onEffectChange = { effect ->
+                            viewModel.updateSelectedText { it.copy(effect = effect) }
                         }
                     )
 

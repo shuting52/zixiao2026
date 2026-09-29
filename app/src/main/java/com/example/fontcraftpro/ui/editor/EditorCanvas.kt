@@ -22,6 +22,7 @@ import com.example.fontcraftpro.data.model.BackgroundType
 import com.example.fontcraftpro.data.model.ImageLayer
 import com.example.fontcraftpro.data.model.Layer
 import com.example.fontcraftpro.data.model.TextAlignment
+import com.example.fontcraftpro.data.model.TextEffect
 import com.example.fontcraftpro.data.model.TextLayer
 
 @Composable
@@ -123,9 +124,8 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
         else -> Typeface.DEFAULT
     }
 
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    val basePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = layer.fontSize
-        color = layer.textColor
         typeface = customTypeface
         alpha = (layer.alpha * 255).toInt().coerceIn(0, 255)
         textAlign = when (layer.textAlignment) {
@@ -133,8 +133,43 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
             TextAlignment.CENTER -> Paint.Align.CENTER
             TextAlignment.RIGHT -> Paint.Align.RIGHT
         }
-        if (layer.shadowRadius > 0f) {
-            setShadowLayer(layer.shadowRadius, layer.shadowDx, layer.shadowDy, layer.shadowColor)
+    }
+
+    val paint = when (layer.effect) {
+        TextEffect.NORMAL -> Paint(basePaint).apply {
+            color = layer.textColor
+        }
+        TextEffect.GLOW -> Paint(basePaint).apply {
+            color = layer.textColor
+            setShadowLayer(18f, 0f, 0f, 0xFF66F2FF.toInt())
+        }
+        TextEffect.GOLD -> Paint(basePaint).apply {
+            shader = LinearGradient(
+                0f, 0f, layer.fontSize * layer.text.length, 0f,
+                intArrayOf(
+                    0xFFFFE082.toInt(),
+                    0xFFFFD54F.toInt(),
+                    0xFFFFA726.toInt()
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
+        }
+        TextEffect.NEON -> Paint(basePaint).apply {
+            color = layer.textColor
+            setShadowLayer(12f, 0f, 0f, 0xFF7C4DFF.toInt())
+        }
+        TextEffect.GRADIENT -> Paint(basePaint).apply {
+            shader = LinearGradient(
+                0f, 0f, layer.fontSize * layer.text.length, layer.fontSize,
+                intArrayOf(
+                    0xFF60A5FA.toInt(),
+                    0xFF22D3EE.toInt(),
+                    0xFFF472B6.toInt()
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
         }
     }
 

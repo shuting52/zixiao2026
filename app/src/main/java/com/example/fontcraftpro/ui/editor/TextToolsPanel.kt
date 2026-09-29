@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import com.example.fontcraftpro.data.model.TextAlignment
+import com.example.fontcraftpro.data.model.TextEffect
 import com.example.fontcraftpro.data.model.TextLayer
 
 @Composable
@@ -30,7 +31,8 @@ fun TextToolsPanel(
     onColorChange: (Int) -> Unit,
     onAlphaChange: (Float) -> Unit,
     onAlignmentChange: (TextAlignment) -> Unit,
-    onFontChange: (String) -> Unit
+    onFontChange: (String) -> Unit,
+    onEffectChange: (TextEffect) -> Unit
 ) {
     if (selected == null) return
 
@@ -95,6 +97,24 @@ fun TextToolsPanel(
             ).forEach { (fontName, label) ->
                 OutlinedButton(
                     onClick = { onFontChange(fontName) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(label)
+                }
+            }
+        }
+
+        Text("字效", style = MaterialTheme.typography.labelMedium)
+        Row {
+            listOf(
+                TextEffect.NORMAL to "普通",
+                TextEffect.GLOW to "发光",
+                TextEffect.GOLD to "金色",
+                TextEffect.NEON to "霓虹",
+                TextEffect.GRADIENT to "渐变"
+            ).forEach { (effect, label) ->
+                OutlinedButton(
+                    onClick = { onEffectChange(effect) },
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
                     Text(label)

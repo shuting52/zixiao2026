@@ -10,6 +10,15 @@ enum class TextAlignment {
 }
 
 @Serializable
+enum class TextEffect {
+    NORMAL,
+    GLOW,
+    GOLD,
+    NEON,
+    GRADIENT
+}
+
+@Serializable
 data class TextLayer(
     override val id: String,
     override val x: Float,
@@ -25,6 +34,7 @@ data class TextLayer(
     val shadowDy: Float = 0f,
     val shadowColor: Int = 0x00000000,
     val textAlignment: TextAlignment = TextAlignment.LEFT,
+    val effect: TextEffect = TextEffect.NORMAL,
     override val scale: Float = 1f,
     override val rotation: Float = 0f,
     override val alpha: Float = 1f,
