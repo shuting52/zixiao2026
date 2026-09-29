@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import java.io.File
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
@@ -118,10 +119,11 @@ private fun drawLayerToCanvas(canvas: android.graphics.Canvas, layer: Layer) {
 }
 
 private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
-    val customTypeface = when (layer.fontName) {
-        "bold" -> Typeface.DEFAULT_BOLD
-        "serif" -> Typeface.SERIF
-        "mono" -> Typeface.MONOSPACE
+    val customTypeface = when {
+        layer.fontPath != null && File(layer.fontPath).exists() -> Typeface.createFromFile(layer.fontPath)
+        layer.fontName == "bold" -> Typeface.DEFAULT_BOLD
+        layer.fontName == "serif" -> Typeface.SERIF
+        layer.fontName == "mono" -> Typeface.MONOSPACE
         else -> Typeface.DEFAULT
     }
 
@@ -228,6 +230,17 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
     canvas.rotate(layer.rotation, 0f, 0f)
     canvas.scale(layer.scale, layer.scale)
 
+    if (layer.is3D && layer.extrudeDepth > 0) {
+        for (i in 1..layer.extrudeDepth) {
+            val extrudePaint = Paint(paint).apply {
+                color = 0xFF1D1F2A.toInt()
+                alpha = 120
+                style = Paint.Style.FILL
+            }
+            canvas.drawText(layer.text, xOffset + i.toFloat(), baseline + i.toFloat(), extrudePaint)
+        }
+    }
+
     if (layer.effect == TextEffect.BEVEL) {
         val shadow = Paint(paint).apply {
             color = 0x66000000.toInt()
@@ -244,6 +257,16 @@ private fun drawTextLayer(canvas: android.graphics.Canvas, layer: TextLayer) {
             setShadowLayer(8f, 0f, 0f, 0x66000000)
         }
         canvas.drawText(layer.text, xOffset, baseline, inner)
+    }
+
+    if (layer.shape == com.example.fontcraftpro.data.model.TextShape.OUTLINE) {
+        val outline = Paint(paint).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = maxOf(layer.strokeWidth, 3f)
+            color = layer.strokeColor.takeIf { it != 0x00000000 } ?: 0xFFB9A8FF.toInt()
+            clearShadowLayer()
+        }
+        canvas.drawText(layer.text, xOffset, baseline, outline)
     }
 
     if (layer.strokeWidth > 0f && layer.strokeColor != 0x00000000 && layer.effect != TextEffect.STROKE) {

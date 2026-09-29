@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.fontcraftpro.data.model.TextAlignment
 import com.example.fontcraftpro.data.model.TextEffect
 import com.example.fontcraftpro.data.model.TextLayer
+import com.example.fontcraftpro.data.model.TextShape
 
 @Composable
 fun TextToolsPanel(
@@ -33,9 +34,13 @@ fun TextToolsPanel(
     onAlignmentChange: (TextAlignment) -> Unit,
     onFontChange: (String) -> Unit,
     onEffectChange: (TextEffect) -> Unit,
+    onShapeChange: (TextShape) -> Unit,
     onCurveChange: (Float) -> Unit,
     onAnimationChange: (com.example.fontcraftpro.data.model.TextAnimation) -> Unit,
-    onPresetApply: (com.example.fontcraftpro.data.model.TextPreset) -> Unit
+    on3DModeChange: (Boolean) -> Unit,
+    onExtrudeDepthChange: (Int) -> Unit,
+    onPresetApply: (com.example.fontcraftpro.data.model.TextPreset) -> Unit,
+    onImportFontClick: () -> Unit
 ) {
     if (selected == null) return
 
@@ -105,7 +110,46 @@ fun TextToolsPanel(
                     Text(label)
                 }
             }
+            OutlinedButton(
+                onClick = onImportFontClick,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Text("导入字体")
+            }
         }
+
+        Text("形状", style = MaterialTheme.typography.labelMedium)
+        Row {
+            listOf(
+                TextShape.FLAT to "平面",
+                TextShape.OUTLINE to "轮廓",
+                TextShape.ROUNDED to "圆角"
+            ).forEach { (shape, label) ->
+                OutlinedButton(
+                    onClick = { onShapeChange(shape) },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(label)
+                }
+            }
+        }
+
+        Text("3D立体", style = MaterialTheme.typography.labelMedium)
+        Row {
+            OutlinedButton(
+                onClick = { on3DModeChange(!selected.is3D) },
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Text(if (selected.is3D) "关闭3D" else "开启3D")
+            }
+        }
+
+        Text("立体深度: ${selected.extrudeDepth}px", style = MaterialTheme.typography.labelMedium)
+        Slider(
+            value = selected.extrudeDepth.toFloat(),
+            onValueChange = { onExtrudeDepthChange(it.toInt()) },
+            valueRange = 0f..24f
+        )
 
         Text("字效", style = MaterialTheme.typography.labelMedium)
         Row {

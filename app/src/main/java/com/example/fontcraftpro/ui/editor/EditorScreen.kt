@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import java.io.File
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fontcraftpro.data.model.BackgroundType
 import com.example.fontcraftpro.data.model.TextLayer
 import com.example.fontcraftpro.data.model.TextPreset
+import com.example.fontcraftpro.data.model.TextShape
 import com.example.fontcraftpro.ui.settings.SettingsScreen
 import com.example.fontcraftpro.ui.theme.AppThemeMode
 import com.example.fontcraftpro.ui.theme.AppThemeSettings
@@ -65,6 +67,22 @@ private fun readImportedText(context: Context, uri: Uri): String {
         val fallback = uri.lastPathSegment?.substringAfterLast('/')?.substringBeforeLast('.')
             ?: "导入文字"
         fallback.ifBlank { "导入文字" }
+    }
+}
+
+private fun saveImportedFont(context: Context, uri: Uri): String? {
+    return try {
+        val input = context.contentResolver.openInputStream(uri) ?: return null
+        val ext = uri.lastPathSegment?.substringAfterLast('.')?.lowercase() ?: "ttf"
+        val file = File(context.cacheDir, "custom_font_${System.currentTimeMillis()}.$ext")
+        input.use { stream ->
+            file.outputStream().use { out ->
+                stream.copyTo(out)
+            }
+        }
+        file.absolutePath
+    } catch (_: Exception) {
+        null
     }
 }
 
@@ -123,6 +141,16 @@ fun EditorScreen(
         }
     )
 
+    val fontImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri: Uri? ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            val filePath = saveImportedFont(context, uri) ?: return@rememberLauncherForActivityResult
+            viewModel.updateSelectedText { it.copy(fontName = "custom", fontPath = filePath, is3D = true, extrudeDepth = 6) }
+            exportMessage = "已导入本地字体：${uri.lastPathSegment ?: "字体"}"
+        }
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
         ThemeBackground(themeSettings = themeSettings)
 
@@ -146,6 +174,7 @@ fun EditorScreen(
                             }) { Text("深色") }
                             OutlinedButton(onClick = { imageLauncher.launch("image/*") }) { Text("图片") }
                             OutlinedButton(onClick = { videoLauncher.launch("video/*") }) { Text("视频") }
+                            OutlinedButton(onClick = { fontImportLauncher.launch(arrayOf("font/ttf", "font/otf", "application/x-font-ttf", "application/octet-stream", "*/*")) }) { Text("字体") }
                             OutlinedButton(onClick = {
                                 sourceImportLauncher.launch(arrayOf("*/*"))
                             }) { Text("导入PLP/PSD") }
@@ -308,10 +337,13 @@ fun EditorScreen(
                             viewModel.updateSelectedText { it.copy(textAlignment = alignment) }
                         },
                         onFontChange = { fontName ->
-                            viewModel.updateSelectedText { it.copy(fontName = fontName) }
+                            viewModel.updateSelectedText { it.copy(fontName = fontName, fontPath = null) }
                         },
                         onEffectChange = { effect ->
                             viewModel.updateSelectedText { it.copy(effect = effect) }
+                        },
+                        onShapeChange = { shape ->
+                            viewModel.updateSelectedText { it.copy(shape = shape) }
                         },
                         onCurveChange = { curve ->
                             viewModel.updateSelectedText { it.copy(curveOffset = curve) }
@@ -319,8 +351,17 @@ fun EditorScreen(
                         onAnimationChange = { animation ->
                             viewModel.updateSelectedText { it.copy(animation = animation) }
                         },
+                        on3DModeChange = { enabled ->
+                            viewModel.updateSelectedText { it.copy(is3D = enabled, extrudeDepth = if (enabled) maxOf(it.extrudeDepth, 4) else 0) }
+                        },
+                        onExtrudeDepthChange = { depth ->
+                            viewModel.updateSelectedText { it.copy(extrudeDepth = depth, is3D = depth > 0) }
+                        },
                         onPresetApply = { preset ->
                             viewModel.applyTextPreset(preset)
+                        },
+                        onImportFontClick = {
+                            fontImportLauncher.launch(arrayOf("font/ttf", "font/otf", "application/x-font-ttf", "application/octet-stream", "*/*"))
                         }
                     )
 

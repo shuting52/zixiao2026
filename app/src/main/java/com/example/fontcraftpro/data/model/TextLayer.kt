@@ -23,6 +23,13 @@ enum class TextEffect {
 }
 
 @Serializable
+enum class TextShape {
+    FLAT,
+    OUTLINE,
+    ROUNDED
+}
+
+@Serializable
 enum class TextAnimation {
     NONE,
     PULSE,
@@ -47,6 +54,7 @@ data class TextLayer(
     override val y: Float,
     val text: String,
     val fontName: String = "default",
+    val fontPath: String? = null,
     val fontSize: Float = 72f,
     val textColor: Int = 0xFFFFFFFF.toInt(),
     val strokeColor: Int = 0x00000000,
@@ -57,8 +65,11 @@ data class TextLayer(
     val shadowColor: Int = 0x00000000,
     val textAlignment: TextAlignment = TextAlignment.LEFT,
     val effect: TextEffect = TextEffect.NORMAL,
+    val shape: TextShape = TextShape.FLAT,
     val curveOffset: Float = 0f,
     val animation: TextAnimation = TextAnimation.NONE,
+    val is3D: Boolean = false,
+    val extrudeDepth: Int = 0,
     val preset: TextPreset = TextPreset.CUSTOM,
     override val scale: Float = 1f,
     override val rotation: Float = 0f,
